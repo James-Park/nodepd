@@ -6,5 +6,3 @@ stdin.on('data', function(chunk) {
        if (err) throw err;
    });
 });
-
-
