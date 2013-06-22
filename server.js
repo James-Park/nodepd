@@ -42,6 +42,7 @@ server.listen(8000);
 
 var io = io.listen(server);
 
+
 io.on('connection', function(client){
   console.log('Client connected');
   var tail = spawn("tail", ["-f", filename]);
