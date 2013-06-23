@@ -139,15 +139,29 @@ var io = io.listen(server);
 io.on('connection', function(client){
   console.log('Client connected');
   
-  path.exists(path.join(process.cwd(), viewFileName), function(exists) {
-    var tail = spawn("tail", ["-f", viewFileName]);
-    client.send(viewFileName);
+  // executeTail(client, viewFileName);
   
-    tail.stdout.on("data", function (data) {
-      console.log(data.toString('utf-8'))
-      client.send(data.toString('utf-8'))
-    }); 
+  client.on('tail', function(jsonStr) {
+    
+    var jsonArr = JSON.parse(jsonStr);
+    
+    console.log("check1::" + jsonArr.id + "," + jsonArr.fileName);
+    executeTail(client, jsonArr.id, jsonArr.fileName);
   });
 });
+
+function executeTail(client, id, fileName) {
+
+  path.exists(path.join(process.cwd(), fileName), function(exists) {
+    var tail = spawn("tail", ["-f", fileName]);
+
+    tail.stdout.on("data", function (data) {   
+      var jsonArr = {id: id, fileName: fileName, log: data.toString('utf-8') }; 
+      var jsonStr = JSON.stringify(jsonArr);
+      console.log("check2::" + jsonStr);
+      client.send(jsonStr);
+    }); 
+  });
+}
 
 console.log('Server running at http://127.0.0.1:8000/, connect with a browser to see tail output');

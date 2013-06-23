@@ -22,9 +22,18 @@
 	#add_tab { cursor: pointer; }
 	</style>
 	<script>
+	  
 	$(function() {
+	  
+    // var socket = io.connect('http://192.168.150.163:8000', {
+    //var socket = io.connect('http://172.30.1.19:8000', { 
+    var socket = io.connect('http://127.0.0.1:8000', {
+        'reconnect': true
+        , 'resource': 'socket.io'
+    });
+  
 		var tabTitle = $( "#tab_title" ),
-			tabContent = $( "#tab_content" ),
+			// tabContent = $( "#tab_content" ),
 			tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>",
 			tabCounter = 2;
 
@@ -60,12 +69,19 @@
 			var label = tabTitle.val() || "Tab " + tabCounter,
 				id = "tabs-" + tabCounter,
 				li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ) ),
-				tabContentHtml = tabContent.val() || "Tab " + tabCounter + " content.";
+				tabContentHtml = tabTitle.val() || "Tab " + tabCounter + " content.";
 
 			tabs.find( ".ui-tabs-nav" ).append( li );
-			tabs.append( "<div id='" + id + "'><p>" + tabContentHtml + "</p></div>" );
+			tabs.append( "<div id='" + id + "'><div id='contents' style='width:100%; height:500px; overflow:auto; border:1px solid #ADADAD;'>" + tabContentHtml + "</div></div>" ); 
 			tabs.tabs( "refresh" );
 			tabCounter++;
+			
+			executeTail(id, tabTitle.val());
+		}
+		
+		function executeTail(id, fileName) {
+			var jsonData = {id: id, fileName: $("#tab_title").val()};
+			socket.emit('tail', JSON.stringify(jsonData));				  
 		}
 
 		// addTab button: just opens the dialog
@@ -90,29 +106,33 @@
 			}
 		});
 		
-		
-    // var socket = io.connect('http://192.168.150.163:8000', {
-    // var socket = io.connect('http://172.30.1.11:8000', { 
-    var socket = io.connect('http://127.0.0.1:8000', {
-        'reconnect': true
-        , 'resource': 'socket.io'
-    });
+		/*
+		function put(id, data, callback) {
+      $.ajax('http://127.0.0.1:8181/' + id + '/', {
+          type: 'POST',
+          data: JSON.stringify(data),
+          contentType: 'text/json',
+          success: function() { if ( callback ) callback(true); },
+          error  : function() { if ( callback ) callback(false); }
+      });
+    }
+    */
     
     socket.on('connect', function() {
-        printMessage('Success to connect');
+        // printMessage('Success to connect <br />');
     });
         
     socket.on('message', function(message) {
-      printMessage(message);
+      var jsonArr = JSON.parse(message);
+      //alert(jsonArr.id);
+      printMessage(jsonArr.id, jsonArr.log);
     });
-  
-    var contents = document.getElementById('contents');
     
-    function printMessage(msg) {
-      var p = document.createElement("p");
-      p.textContent = msg;
-      contents.appendChild(p);
+    function printMessage(id, msg) {
+      //alert(id + "::" + msg);
+      $("#" + id + " #contents").append(msg.replace(/\n\r?/g, "<br />"));
     }
+	
 	});	
 	
 	</script>
@@ -124,21 +144,26 @@
 		<fieldset class="ui-helper-reset">
 			<label for="tab_title">Title</label>
 			<input type="text" name="tab_title" id="tab_title" value="" class="ui-widget-content ui-corner-all" />
-			<label for="tab_content">Content</label>
+			<!--
 			<textarea name="tab_content" id="tab_content" class="ui-widget-content ui-corner-all"></textarea>
+			-->
 		</fieldset>
 	</form>
 </div>
 
-<button id="add_tab">Add Tab</button>
+<button id="add_tab">Add File Monitoring</button>
 
 <div id="tabs">
 	<ul>
-		<li><a href="#tabs-1">Nunc tincidunt</a> <span class="ui-icon ui-icon-close" role="presentation">Remove Tab</span></li>
+	  <!--
+		<li><a href="#tabs-1">Basic</a> <span class="ui-icon ui-icon-close" role="presentation">Remove Tab</span></li>
+		-->
 	</ul>
+	<!--
 	<div id="tabs-1">
      <div id="contents" style="width:100%; height:500px; overflow:auto; border:1px solid #ADADAD;">
 	</div>
+	-->
 </div>
 
 </body>
