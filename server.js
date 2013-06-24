@@ -96,10 +96,14 @@ server = http.createServer(function(request, response){
       // viewFileName = "log.txt";
 
       var headers = {};
-      var contentType = contentTypesByExtension[path.extname(file)];
-      if (contentType) headers["Content-Type"] = contentType;
+      var contentType = contentTypesByExtension[path.extname(filename)];
+      
+      if (contentType) { 
+        headers["Content-Type"] = contentType;
+      }
+      
       response.writeHead(200, headers);
-      response.write(file, "binary");
+      response.write(file, 'binary');
       response.end();
     });  
     
