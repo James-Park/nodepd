@@ -5,14 +5,16 @@
 	<title>jQuery UI Tabs - Simple manipulation</title>
 	<link rel="stylesheet" href="jquery/css/jquery.ui.all.css">
 	<link rel="stylesheet" href="css/style.css">	
+	
 	<script type="text/javascript" src="jquery/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="jquery/jquery-ui.js"></script>
 	<script type="text/javascript" src="jquery/ui/jquery.ui.position.js"></script>
 	<script type="text/javascript" src="jquery/ui/jquery.ui.core.js"></script>
 	<script type="text/javascript" src="jquery/ui/jquery.ui.widget.js"></script>
 	<script type="text/javascript" src="jquery/ui/jquery.ui.button.js"></script>
 	<script type="text/javascript" src="jquery/ui/jquery.ui.tabs.js"></script>
 	<script type="text/javascript" src="jquery/ui/jquery.ui.dialog.js"></script>
-  <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	<style>
 	#dialog label, #dialog input { display:block; }
 	#dialog label { margin-top: 0.5em; }
@@ -25,13 +27,23 @@
 	  
 	$(function() {
 	  
-    // var socket = io.connect('http://192.168.150.163:8000', {
-    //var socket = io.connect('http://172.30.1.19:8000', { 
-    var socket = io.connect('http://127.0.0.1:8000', {
-        'reconnect': true
-        , 'resource': 'socket.io'
-    });
-  
+		// var socket = io.connect('http://192.168.150.163:8000', {
+		// var socket = io.connect('http://172.30.1.19:8000', { 
+		var socket = io.connect('http://127.0.0.1:8000', {
+			'reconnect': true
+			, 'resource': 'socket.io'
+		});
+
+		// autoComplete init.
+		var availableTags = [];
+		
+		$( "#tags" ).autocomplete({
+			source: availableTags
+		});
+		
+		var autoComplete = $( "#tags" );
+
+
 		var tabTitle = $( "#tab_title" ),
 			// tabContent = $( "#tab_content" ),
 			tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>",
@@ -78,9 +90,27 @@
 			
 			executeTail(id, tabTitle.val());
 		}
+
+		function addTab2() {
+		    
+			availableTags.push(autoComplete.val());
+		    
+			var label = autoComplete.val() || "Tab " + tabCounter,
+				id = "tabs-" + tabCounter,
+				li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ) ),
+				tabContentHtml = autoComplete.val() || "Tab " + tabCounter + " content.";
+			
+			tabs.find( ".ui-tabs-nav" ).append( li );
+			
+			tabs.append( "<div id='" + id + "'><div id='contents' style='width:100%; height:500px; overflow:auto; border:1px solid #ADADAD;'>" + tabContentHtml + "</div></div>" ); 
+			tabs.tabs( "refresh" );
+			tabCounter++;
+			
+			executeTail(id, autoComplete.val());
+		}
 		
 		function executeTail(id, fileName) {
-			var jsonData = {id: id, fileName: $("#tab_title").val()};
+			var jsonData = {id: id, fileName: autoComplete.val()};
 			socket.emit('tail', JSON.stringify(jsonData));				  
 		}
 
@@ -88,7 +118,7 @@
 		$( "#add_tab" )
 			.button()
 			.click(function() {
-				dialog.dialog( "open" );
+				addTab2();
 			});
 
 		// close icon: removing the tab on click
@@ -98,6 +128,7 @@
 			tabs.tabs( "refresh" );
 		});
 
+		// 
 		tabs.bind( "keyup", function( event ) {
 			if ( event.altKey && event.keyCode === $.ui.keyCode.BACKSPACE ) {
 				var panelId = tabs.find( ".ui-tabs-active" ).remove().attr( "aria-controls" );
@@ -150,8 +181,14 @@
 		</fieldset>
 	</form>
 </div>
+<div>
+			<div class="ui-widget" >
+				<label for="tags">COMMAND : </label>
+				<input id="tags" style="width:400px"/>
+				<button id="add_tab">Add File</button>
+			</div>			
+		</div>
 
-<button id="add_tab">Add File Monitoring</button>
 
 <div id="tabs">
 	<ul>
