@@ -1,144 +1,171 @@
 <!doctype html>
 <html lang="en">
 <head>
-	<meta charset="utf-8">
-	<title>jQuery UI Tabs - Simple manipulation</title>
-	<link rel="stylesheet" href="jquery/css/jquery.ui.all.css">
-	<link rel="stylesheet" href="css/style.css">	
-	
-	<script type="text/javascript" src="jquery/jquery-1.9.1.js"></script>
-	<script type="text/javascript" src="jquery/jquery-ui.js"></script>
-	<script type="text/javascript" src="jquery/ui/jquery.ui.position.js"></script>
-	<script type="text/javascript" src="jquery/ui/jquery.ui.core.js"></script>
-	<script type="text/javascript" src="jquery/ui/jquery.ui.widget.js"></script>
-	<script type="text/javascript" src="jquery/ui/jquery.ui.button.js"></script>
-	<script type="text/javascript" src="jquery/ui/jquery.ui.tabs.js"></script>
-	<script type="text/javascript" src="jquery/ui/jquery.ui.dialog.js"></script>
-	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
-	<style>
-	#dialog label, #dialog input { display:block; }
-	#dialog label { margin-top: 0.5em; }
-	#dialog input, #dialog textarea { width: 95%; }
-	#tabs { margin-top: 1em; }
-	#tabs li .ui-icon-close { float: left; margin: 0.4em 0.2em 0 0; cursor: pointer; }
-	#add_tab { cursor: pointer; }
-	</style>
-	<script>
-	  
-	$(function() {
-	  
-		// var socket = io.connect('http://192.168.150.163:8000', {
-		// var socket = io.connect('http://172.30.1.19:8000', { 
-		var socket = io.connect('http://127.0.0.1:8000', {
-			'reconnect': true
-			, 'resource': 'socket.io'
-		});
+  <meta charset="utf-8">
+  <title>jQuery UI Tabs - Simple manipulation</title>
+  <link rel="stylesheet" href="jquery/css/jquery.ui.all.css">
+  <link rel="stylesheet" href="css/style.css">  
+  
+  <script type="text/javascript" src="jquery/jquery-1.9.1.js"></script>
+  <script type="text/javascript" src="jquery/jquery-ui.js"></script>
+  <script type="text/javascript" src="jquery/ui/jquery.ui.position.js"></script>
+  <script type="text/javascript" src="jquery/ui/jquery.ui.core.js"></script>
+  <script type="text/javascript" src="jquery/ui/jquery.ui.widget.js"></script>
+  <script type="text/javascript" src="jquery/ui/jquery.ui.button.js"></script>
+  <script type="text/javascript" src="jquery/ui/jquery.ui.tabs.js"></script>
+  <script type="text/javascript" src="jquery/ui/jquery.ui.dialog.js"></script>
+  <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+  <style>
+  #dialog label, #dialog input { display:block; }
+  #dialog label { margin-top: 0.5em; }
+  #dialog input, #dialog textarea { width: 95%; }
+  #tabs { margin-top: 1em; }
+  #tabs li .ui-icon-close { float: left; margin: 0.4em 0.2em 0 0; cursor: pointer; }
+  #add_tab { cursor: pointer; }
+  </style>
+  <script>
+    
+  $(function() {
+    
+    // var socket = io.connect('http://192.168.150.163:8000', {
+    // var socket = io.connect('http://172.30.1.19:8000', { 
+    var socket = io.connect('http://127.0.0.1:8000', {
+      'reconnect': true
+      , 'resource': 'socket.io'
+    });
 
-		// autoComplete init.
-		var availableTags = [];
-		
-		$( "#tags" ).autocomplete({
-			source: availableTags
-		});
-		
-		var autoComplete = $( "#tags" );
+    // autoComplete init.
+    var availableTags = [];
+    
+    $( "#tags" ).autocomplete({
+      source: availableTags
+    });
+    
+    var autoComplete = $( "#tags" );
 
 
-		var tabTitle = $( "#tab_title" ),
-			// tabContent = $( "#tab_content" ),
-			tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>",
-			tabCounter = 2;
+    var tabTitle = $( "#tab_title" ),
+      // tabContent = $( "#tab_content" ),
+      tabTemplate = "<li><a href='#{href}'>#{label}</a> <span class='ui-icon ui-icon-close' role='presentation'>Remove Tab</span></li>",
+      tabCounter = 2;
 
-		var tabs = $( "#tabs" ).tabs();
+    var tabs = $( "#tabs" ).tabs();
 
-		// modal dialog init: custom buttons and a "close" callback reseting the form inside
-		var dialog = $( "#dialog" ).dialog({
-			autoOpen: false,
-			modal: true,
-			buttons: {
-				Add: function() {
-					addTab();
-					$( this ).dialog( "close" );
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
-				}
-			},
-			close: function() {
-				form[ 0 ].reset();
-			}
-		});
+    // modal dialog init: custom buttons and a "close" callback reseting the form inside
+    var dialog = $( "#dialog" ).dialog({
+      autoOpen: false,
+      modal: true,
+      buttons: {
+        Add: function() {
+          addTab();
+          $( this ).dialog( "close" );
+        },
+        Cancel: function() {
+          $( this ).dialog( "close" );
+        }
+      },
+      close: function() {
+        form[ 0 ].reset();
+      }
+    });
 
-		// addTab form: calls addTab function on submit and closes the dialog
-		var form = dialog.find( "form" ).submit(function( event ) {
-			addTab();
-			dialog.dialog( "close" );
-			event.preventDefault();
-		});
+    // addTab form: calls addTab function on submit and closes the dialog
+    var form = dialog.find( "form" ).submit(function( event ) {
+      addTab();
+      dialog.dialog( "close" );
+      event.preventDefault();
+    });
 
-		// actual addTab function: adds new tab using the input from the form above
-		function addTab() {
-			var label = tabTitle.val() || "Tab " + tabCounter,
-				id = "tabs-" + tabCounter,
-				li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ) ),
-				tabContentHtml = tabTitle.val() || "Tab " + tabCounter + " content.";
+    // actual addTab function: adds new tab using the input from the form above
+    function addTab() {
+      var label = tabTitle.val() || "Tab " + tabCounter,
+        id = "tabs-" + tabCounter,
+        li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ) ),
+        tabContentHtml = tabTitle.val() || "Tab " + tabCounter + " content.";
+      tabs.find( ".ui-tabs-nav" ).append( li );
+      tabs.append( "<div id='" + id + "'><div id='contents' style='width:100%; height:500px; overflow:auto; border:1px solid #ADADAD;'>" + tabContentHtml + "</div></div>" ); 
+      tabs.tabs( "refresh" );
+      tabCounter++;
+      
+      // executeTail(id, tabTitle.val());
+    }
+    
+    function execTab() {
+      if ($("#tab_type").val() == "1") {
+        addTab2();
+      } else if ($("#tab_type").val() == "2") {
+        var id = $('#tabs > ul > li[aria-selected=true]').attr('aria-controls');
+        var fileName = autoComplete.val();
+        executeTail(id, fileName);
+      }
+      
+    }
 
-			tabs.find( ".ui-tabs-nav" ).append( li );
-			tabs.append( "<div id='" + id + "'><div id='contents' style='width:100%; height:500px; overflow:auto; border:1px solid #ADADAD;'>" + tabContentHtml + "</div></div>" ); 
-			tabs.tabs( "refresh" );
-			tabCounter++;
-			
-			executeTail(id, tabTitle.val());
-		}
+    function addTab2() {
+        
+      availableTags.push(autoComplete.val());
+        
+      var label = autoComplete.val() || "Tab " + tabCounter,
+        id = "tabs-" + tabCounter,
+        li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ) ),
+        tabContentHtml = autoComplete.val() || "Tab " + tabCounter + " content.";
 
-		function addTab2() {
-		    
-			availableTags.push(autoComplete.val());
-		    
-			var label = autoComplete.val() || "Tab " + tabCounter,
-				id = "tabs-" + tabCounter,
-				li = $( tabTemplate.replace( /#\{href\}/g, "#" + id ).replace( /#\{label\}/g, label ) ),
-				tabContentHtml = autoComplete.val() || "Tab " + tabCounter + " content.";
-			
-			tabs.find( ".ui-tabs-nav" ).append( li );
-			
-			tabs.append( "<div id='" + id + "'><div id='contents' style='width:100%; height:500px; overflow:auto; border:1px solid #ADADAD;'>" + tabContentHtml + "</div></div>" ); 
-			tabs.tabs( "refresh" );
-			tabCounter++;
-			
-			executeTail(id, autoComplete.val());
-		}
-		
-		function executeTail(id, fileName) {
-			var jsonData = {id: id, fileName: autoComplete.val()};
-			socket.emit('tail', JSON.stringify(jsonData));				  
-		}
+      tabs.find( ".ui-tabs-nav" ).append( li );
+      
+      tabs.append( "<div id='" + id + "'><div id='contents' style='width:100%; height:500px; overflow:auto; border:1px solid #ADADAD;'>" + tabContentHtml + "</div></div>" ); 
+      tabs.tabs( "refresh" );
+      tabCounter++;
 
-		// addTab button: just opens the dialog
-		$( "#add_tab" )
-			.button()
-			.click(function() {
-				addTab2();
-			});
+      $("#tabs > ul > li[aria-controls!='" + id + "']").attr('aria-selected', false);
+      $("#tabs > ul > li[aria-controls!='" + id + "']").removeClass('ui-tabs-active');
+      $("#tabs > ul > li[aria-controls!='" + id + "']").removeClass('ui-state-active');
+      
+      $("#tabs > ul > li[aria-controls='" + id + "']").attr('aria-selected', true);
+      $("#tabs > ul > li[aria-controls='" + id + "']").addClass('ui-tabs-active');
+      $("#tabs > ul > li[aria-controls='" + id + "']").addClass('ui-state-active');
+     
+      $('#tabs > div[id!=' + id + ']').attr('aria-expanded', false);
+      $('#tabs > div[id!=' + id + ']').attr('aria-hidden', true);
+      $('#tabs > div[id!=' + id + ']').hide();
+      
+      $('#tabs > div[id=' + id + ']').attr('aria-expanded', true);
+      $('#tabs > div[id=' + id + ']').attr('aria-hidden', false);
+      $('#tabs > div[id=' + id + ']').show();
 
-		// close icon: removing the tab on click
-		tabs.delegate( "span.ui-icon-close", "click", function() {
-			var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
-			$( "#" + panelId ).remove();
-			tabs.tabs( "refresh" );
-		});
+      executeTail(id, autoComplete.val());    
+      
+    }
+    
+    function executeTail(id, fileName) {  
+      var jsonData = {id: id, fileName: autoComplete.val()};
+      socket.emit('tail', JSON.stringify(jsonData));          
+    }
 
-		// 
-		tabs.bind( "keyup", function( event ) {
-			if ( event.altKey && event.keyCode === $.ui.keyCode.BACKSPACE ) {
-				var panelId = tabs.find( ".ui-tabs-active" ).remove().attr( "aria-controls" );
-				$( "#" + panelId ).remove();
-				tabs.tabs( "refresh" );
-			}
-		});
-		
-		/*
-		function put(id, data, callback) {
+    // addTab button: just opens the dialog
+    $( "#add_tab" )
+      .button()
+      .click(function() {
+        execTab();
+      });
+
+    // close icon: removing the tab on click
+    tabs.delegate( "span.ui-icon-close", "click", function() {
+      var panelId = $( this ).closest( "li" ).remove().attr( "aria-controls" );
+      $( "#" + panelId ).remove();
+      tabs.tabs( "refresh" );
+    });
+
+    // 
+    tabs.bind( "keyup", function( event ) {
+      if ( event.altKey && event.keyCode === $.ui.keyCode.BACKSPACE ) {
+        var panelId = tabs.find( ".ui-tabs-active" ).remove().attr( "aria-controls" );
+        $( "#" + panelId ).remove();
+        tabs.tabs( "refresh" );
+      }
+    });
+    
+    /*
+    function put(id, data, callback) {
       $.ajax('http://127.0.0.1:8181/' + id + '/', {
           type: 'POST',
           data: JSON.stringify(data),
@@ -163,45 +190,47 @@
       //alert(id + "::" + msg);
       $("#" + id + " #contents").append(msg.replace(/\n\r?/g, "<br />"));
     }
-	
-	});	
-	
-	</script>
+  }); 
+  
+  </script>
 </head>
 <body>
 
-
+<!--
 <div id="dialog" title="Tab data">
-	<form>
-		<fieldset class="ui-helper-reset">
-			<label for="tab_title">File</label>
-			<input type="text" name="tab_title" id="tab_title" value="" class="ui-widget-content ui-corner-all" />
-			<!--
-			<textarea name="tab_content" id="tab_content" class="ui-widget-content ui-corner-all"></textarea>
-			-->
-		</fieldset>
-	</form>
+  <form>
+    <fieldset class="ui-helper-reset">
+      <label for="tab_title">File</label>
+      <input type="text" name="tab_title" id="tab_title" value="" class="ui-widget-content ui-corner-all" />      
+      <textarea name="tab_content" id="tab_content" class="ui-widget-content ui-corner-all"></textarea>
+    </fieldset>
+  </form>
 </div>
+-->
 <div>
-			<div class="ui-widget" >
-				<label for="tags">COMMAND : </label>
-				<input id="tags" style="width:400px"/>
-				<button id="add_tab">Add File</button>
-			</div>			
-		</div>
+    <div class="ui-widget" >
+        <select id="tab_type">
+           <option value="1">New Tab</option>
+           <option value="2">Current Tab</option>
+        </select>
+        <label for="tags">COMMAND : </label>
+        <input id="tags" style="width:400px"/>
+        <button id="add_tab">Add File</button>
+    </div>      
+</div>
 
 
 <div id="tabs">
-	<ul>
-	  <!--
-		<li><a href="#tabs-1">Basic</a> <span class="ui-icon ui-icon-close" role="presentation">Remove Tab</span></li>
-		-->
-	</ul>
-	<!--
-	<div id="tabs-1">
+  <ul>
+    <!--
+    <li><a href="#tabs-1">Basic</a> <span class="ui-icon ui-icon-close" role="presentation">Remove Tab</span></li>
+    -->
+  </ul>
+  <!--
+  <div id="tabs-1">
      <div id="contents" style="width:100%; height:500px; overflow:auto; border:1px solid #ADADAD;">
-	</div>
-	-->
+  </div>
+  -->
 </div>
 
 </body>
