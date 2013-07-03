@@ -103,7 +103,8 @@
 
     function addTab2() {
         
-      availableTags.push(autoComplete.val());
+      //availableTags.push(autoComplete.val());
+	  checkFileList(autoComplete.val());
         
       var label = autoComplete.val() || "Tab " + tabCounter,
         id = "tabs-" + tabCounter,
@@ -190,6 +191,21 @@
       //alert(id + "::" + msg);
       $("#" + id + " #contents").append(msg.replace(/\n\r?/g, "<br />"));
     }
+
+	function checkFileList(value){		
+		var isExist = false;
+
+		for(var i=0; i<availableTags.length; i++){
+			if(availableTags[i] == value){
+				isExist = true;
+			}
+		}
+
+		if(!isExist){
+			availableTags.push(value);
+		}
+	}
+
   }); 
   
   </script>
